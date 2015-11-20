@@ -1,6 +1,5 @@
 
 Creating a level 0 RAID from EBS volumes on an AWS EC2 instance
-[ Snippets | aws, unix, linux, ubuntu ]
 
 The size of single EBS volumes on Amazon's cloud offering AWS is limited to 1024 GB. To get an entity which acts like a single huge disk and exceeds that limitation, several volumes can be connected into a software RAID (redundant array of independent disks). In this example, we will create an array with a capacity of a little over 4 TB from four 1GB sized EBS volumes.
 
@@ -28,7 +27,7 @@ There are many choices to assemble a collection of volumes into a single array. 
 
 The first variant is striping, also known as level 0 RAID. Continuous storage space is split up into small chunks (the stripes), and subsequent stripes are placed on different devices. This has the benefit of effectively increasing the throughput of the resulting device. A downside of striping is, that adding devices to the array (growing) may take a pretty long time, depending on the size of the volumes. This is based on the moving and redistributing of existing stripes to the new array member.
 
-The second variant of creating a James Dean style disk mashup, is just appending devices to each other in a linear fashion, which does not provide the speed benefits of striping but can be grown nearly instantaneous. With all the talk about enlarging the disks, it should be stated that removing devices once grown is not possible. A complete data wipe and recreation of the array with fewer devices is the only way to take disks away. While striping is level 0, linear is considered to be a non-RAID configuration at all.
+The second variant is just appending devices to each other in a linear fashion, which does not provide the speed benefits of striping but can be grown nearly instantaneous. With all the talk about enlarging the disks, it should be stated that removing devices once grown is not possible. A complete data wipe and recreation of the array with fewer devices is the only way to take disks away. While striping is level 0, linear is considered to be a non-RAID configuration at all.
 
 To create an array, issue the following command substituting 'stripe' for 'linear' if you wish:
 
@@ -74,8 +73,8 @@ So far so good
 
 These were all steps necessary to set up one of the two most basic (and dangerous) types of software RAIDs. If you want to look up some details or dive deeper into the topic, I would recommend to take a look at the following links:
 
-    RAID docs in the excellent Arch Linux Wiki
-    AWS docs on RAID creation
+ RAID docs in the excellent Arch Linux Wiki  https://wiki.archlinux.org/index.php/RAID
+ AWS docs on RAID creation   http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/raid-config.html
 
 In the following subsections, some useful utility commands for handling md devices are listed, among them how to take the newly created device apart for good. I am sure you will find use in at least a few of them either for maintenance or while exploring the topic.
 Temporary disassembling and reassembling RAID arrays
