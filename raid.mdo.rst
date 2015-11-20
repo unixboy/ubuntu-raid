@@ -12,11 +12,15 @@ Preparations
 
 Install mdadm, a tool that to manage software RAID devices. The name can be interpreted as 'multiple device administration'
 
-$ sudo apt-get install mdadm
+::
+
+ $ sudo apt-get install mdadm
 
 A useful command to view block devices and their attributes is blkid. Try it and look at the output you get started, it may come in handy if you want to take a closer look at what is happening.
 
-$ sudo blkid
+::
+ 
+ $ sudo blkid
 
 Creating and mounting the RAID device
 
@@ -29,23 +33,32 @@ The second variant of creating a James Dean style disk mashup, is just appending
 To create an array, issue the following command substituting 'stripe' for 'linear' if you wish:
 
 # the verbose parameter is only there to provide a little entertainment
-$ sudo mdadm --create --verbose /dev/md/raid --level=stripe --raid-devices=4 /dev/xvd[fghi]
+
+::
+ 
+ $ sudo mdadm --create --verbose /dev/md/raid --level=stripe --raid-devices=4 /dev/xvd[fghi]
 
 It will create a new device (it might be /dev/md0, this name varies), linked to from /dev/md/raid. To make the new device usable as any other disk, a filesystem needs to be created on it, XFS or an EXT version of your choice are good fits for most applications:
 
-$ sudo mkfs.xfs /dev/md/raid
+::
+
+ $ sudo mkfs.xfs /dev/md/raid
 
 Finally, it's time to mount the device:
 
-$ sudo mkdir /opt/raid
-$ sudo mount /dev/md/raid /opt/raid
+::
+
+ $ sudo mkdir /opt/raid
+ $ sudo mount /dev/md/raid /opt/raid
 
 Hooray! A huge disk at our disposal! At this stage, we could start using it, but there's a bit more to make sure it will behave. By behave I mean survive an inevitable reboot.
 Make the RAID survive reboots
 
 Unfortunately, the array will not be reassembled under the same name upon a reboot without a few further steps. Run the following command, and copy the line corresponding to the newly created md device:
 
-$ sudo mdadm --detail --scan
+::
+
+ $ sudo mdadm --detail --scan
 
 Add the extracted line to the bottom of the /etc/mdadm/mdadm.conf file. In addition, it might be a good idea to add the following line above it, which limits on where to look for eventual RAID components:
 
@@ -53,7 +66,9 @@ DEVICE /dev/xvd[fghi]
 
 For the changes in this config file to take effect, it is necessary to update the initramfs. Otherwise setting will have noe effect, and the device might be reassembled but the naming will be something unexpected like /dev/md/0_0.
 
-$ sudo update-initramfs -u
+::
+
+ $ sudo update-initramfs -u
 
 So far so good
 
@@ -67,18 +82,25 @@ Temporary disassembling and reassembling RAID arrays
 
 A RAID array can be temporary disassembled with:
 
-$ sudo mdadm --stop /dev/md/raid
+::
+
+ $ sudo mdadm --stop /dev/md/raid
 
 and subsequently put together automatically using:
 
 # it's interesting to add --verbose and get more output here
-$ sudo mdadm --assemble --scan
+
+::
+
+ $sudo mdadm --assemble --scan
 
 Mount a RAID array via fstab
 
 Adding this line to fstab, will try to mount the device on boot but not wait for it neither complain if absent. Instead of the first field, you could provide a 'UUID=...'
 
-/dev/md/raid       /opt/raid    xfs     defaults,nobootwait,auto      0       2
+::
+
+ /dev/md/raid       /opt/raid    xfs     defaults,nobootwait,auto      0       2
 
 Growing
 
@@ -86,33 +108,47 @@ Oh no, the huge disk is not huge enough! Assuming you have created a RAID array 
 
 Once the appropriate growth process described below is complete, just expand the filesystem to match the new capacity. You have used some nice, growable filesystem like xfs, right?
 
-$ sudo xfs_growfs /dev/md/raid
+::
+
+ $ sudo xfs_growfs /dev/md/raid
 
 Add devices to a LINEAR-type array
 
 As described earlier, growing a linear array works nearly instantly:
 
-$ sudo mdadm --grow /dev/md/raid --add /dev/xvdj --backup-file=/tmp/raid.bak
+::
+ 
+ $ sudo mdadm --grow /dev/md/raid --add /dev/xvdj --backup-file=/tmp/raid.bak
 
 That's it. Really.
 Add devices to a STRIPE-type array
 
 The command for this case looks slightly different, and takes time. Lots of time. Adding a 1TB disk takes a little over a day for my setup. The created backup file will be a few MB large. It contains critical sections of the RAID array, but then again you could just create it from scratch as the data is supposed to be disposable. Generally speaking, storing it in the tmp folder is a terrible idea as well if a reboot is at all possible.
 
-$ sudo mdadm --grow /dev/md/raid --raid-devices=5 --add /dev/xvdj --backup-file=/tmp/raid.bak
+::
+
+ $ sudo mdadm --grow /dev/md/raid --raid-devices=5 --add /dev/xvdj --backup-file=/tmp/raid.bak
 
 To check the progress, run:
 
 # for snapshot states
-$ cat /proc/mdstat
+
+::
+ 
+ $ cat /proc/mdstat
+
 # or for a fancy realtime view
-$ watch -t 'cat /proc/mdstat'
+
+::
+
+ $ watch -t 'cat /proc/mdstat'
 
 Although this will be long and painful, the RAID device will remain usable in the meanwhile.
 Destroying an array
 
 To take devices out of a RAID completely and use it for something else, any traces of a previous array need to be removed. If a device is not zeroed and simply used as a common disk, the data on the device can (and probably will) be fubared upon a reboot by the mysterious ways of mdadm. This command is essential when trying out different configurations, but I hope it goes without saying that you need to use it with utmost caution.
 
-$ sudo mdadm --zero-superblock /dev/xvd[fghi]
+::
 
-In conclusion
+ $ sudo mdadm --zero-superblock /dev/xvd[fghi]
+
