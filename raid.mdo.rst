@@ -73,8 +73,13 @@ So far so good
 
 These were all steps necessary to set up one of the two most basic (and dangerous) types of software RAIDs. If you want to look up some details or dive deeper into the topic, I would recommend to take a look at the following links:
 
- RAID docs in the excellent Arch Linux Wiki  https://wiki.archlinux.org/index.php/RAID
- AWS docs on RAID creation   http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/raid-config.html
+RAID docs in the excellent Arch Linux Wiki
+::
+ https://wiki.archlinux.org/index.php/RAID
+ 
+AWS docs on RAID creation
+::
+ http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/raid-config.html
 
 In the following subsections, some useful utility commands for handling md devices are listed, among them how to take the newly created device apart for good. I am sure you will find use in at least a few of them either for maintenance or while exploring the topic.
 Temporary disassembling and reassembling RAID arrays
